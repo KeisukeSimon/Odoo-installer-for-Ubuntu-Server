@@ -39,6 +39,14 @@ sudo chown odoo:root /var/log/odoo
 sudo chown odoo: /etc/odoo-server.conf && sudo chmod 640 /etc/odoo-server.conf
 sudo systemctl start odoo-server
 sudo systemctl status odoo-server
+sudo apt-get install nginx
+sudo touch /etc/nginx/sites-available/odoo
+echo -e "## Odoo Backend ## \upstream odooerp { \server 127.0.0.1:8069;\}\## https site##\server {\listen 443 default_server; \server_name odoo.mysite.co;\root /usr/share/nginx/html;\index index.html index.htm;\# log files\access_log /var/log/nginx/odoo.access.log;\error_log /var/log/nginx/odoo.error.log;\# ssl filess\ssl on;\ssl_ciphers ALL:!ADH:!MD5:!EXPORT:!SSLv2:RC4+RSA:+HIGH:+MEDIUM;\ssl_protocols TLSv1 TLSv1.1 TLSv1.2;\ssl_prefer_server_ciphers on;\ssl_certificate /etc/nginx/ssl/odoo.crt;\ssl_certificate_key /etc/nginx/ssl/odoo.key;\# proxy buffers\proxy_buffers 16 64k;\proxy_buffer_size 128k;\## odoo proxypass with https\## location / {\proxy_pass http://odooerp; \# force timeouts if the backend dies\proxy_next_upstream error timeout invalid_header http_500 http_502 http_503 http_504;\proxy_redirect off;\# set headers\proxy_set_header Host $host;\proxy_set_header X-Real-IP $remote_addr;\proxy_set_header X-Forwarded-For $proxy_add_x_forwarded_for;\proxy_set_header X-Forwarded-Proto https;\} \# cache some static data in memory for 60mins\location ~* /web/static/ {\proxy_cache_valid 200 60m;\proxy_buffering on;\expires 864000;\proxy_pass http://odooerp; \}\}\## http redirects to https ##\server {\listen 80;\server_name odoo.mysite.co;\# Strict Transport Security\add_header Strict-Transport-Security max-age=2592000;\rewrite ^/.*$ http://odooerp; permanent;\}" > /etc/nginx/sites-available/odoo
+ln -s /etc/nginx/sites/available/odoo /etc/nginx/sites-enabled/odoo
+sudo mkdir -p /etc/nginx/ssl
+echo "Please answer the questions for the ssl certification creation"
+sudo openssl req -x509 -nodes -days 365 -newkey rsa:2048 -keyout /etc/nginx/ssl/odoo.key -out /etc/nginx/ssl/odoo.crt
+sudo chmod 600 odoo.key
 echo "Edit /etc/postgresql/9.6/main/postgresql.conf in From CONNECTIONS AND AUTHENTICATION Section: listen_addresses = '*'"
 echo "Change the db_password field with the PostgreSQL odoo user password you created previously. The file is located at /etc/odoo-server.conf"
 echo "By the moment the FQDN is considered to be odoo.yourdomain.com, if changed, change the /etc/postgresql/9.6/main/pg_hba.conf file and /etc/odoo-server.conf files"

@@ -20,8 +20,6 @@ apt install postgresql-9.6 postgresql-server-dev-9.6 -y
 #crear usuario PostgreSQL
 echo "Introduzca contraseña de usuario postgres"
 sudo -u postgres createuser odoo -U postgres -dRSP
-echo "Introduzca contraseña de usuario replica"
-sudo -u postgres createuser replicauser -U postgres -P --replication
 #parar el servicio de postgreSQL
 sudo systemctl stop postgresql
 #configurar la autenticacion basado en host
